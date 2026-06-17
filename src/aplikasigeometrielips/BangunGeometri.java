@@ -15,7 +15,7 @@ public abstract class BangunGeometri {
     MultithreadListener listener;
 
     // Method pengaturan yang diwariskan ke semua class
-    public void setMultithreadConfig(int iterasi, int threadId, MultithreadListener listener) {
+    public void multithread(int iterasi, int threadId, MultithreadListener listener) {
         this.iterasi = iterasi;
         this.threadId = threadId;
         this.listener = listener;
