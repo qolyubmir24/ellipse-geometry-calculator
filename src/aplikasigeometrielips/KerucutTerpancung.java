@@ -23,9 +23,8 @@ public class KerucutTerpancung extends Elips implements BangunRuang, Runnable {
         if (vJariMinorAtas <= 0 || vJariMayorAtas <= 0 || vTinggiKerucutTerpancung <= 0) {
             throw new Exception("Jari-jari atas dan tinggi harus lebih besar dari 0.");
         }
-        double a1 = super.hitungLuas(); // Aman karena mengasumsikan atribut sudah diinisialisasi sebelumnya
-        double a2 = PI * vJariMayorAtas * vJariMinorAtas;
-        vVolumeKerucutTerpancung = (vTinggiKerucutTerpancung / 3.0) * (a1 + a2 + Math.sqrt(a1 * a2));
+
+        vVolumeKerucutTerpancung = (vTinggiKerucutTerpancung / 3.0) * (super.hitungLuas() + (PI * vJariMayorAtas * vJariMinorAtas) + Math.sqrt(super.hitungLuas() * (PI * vJariMayorAtas * vJariMinorAtas)));
         return vVolumeKerucutTerpancung;
     }
 
@@ -41,12 +40,9 @@ public class KerucutTerpancung extends Elips implements BangunRuang, Runnable {
         this.vJariMayorAtas = vJariMayorAtas;
         this.vTinggiKerucutTerpancung = tinggi;
         
-        // Gunakan pemanggilan super versi overloading untuk menghitung luas alas (a1)
-        double a1 = super.hitungLuas(vJariMayorBawah, vJariMinorBawah); 
-        double a2 = PI * this.vJariMayorAtas * this.vJariMinorAtas;
-        
+        // Gunakan pemanggilan super versi overloading untuk menghitung luas alas
         // Hitung volume menggunakan atribut yang sudah di-update
-        vVolumeKerucutTerpancung = (this.vTinggiKerucutTerpancung / 3.0) * (a1 + a2 + Math.sqrt(a1 * a2));
+        vVolumeKerucutTerpancung = (this.vTinggiKerucutTerpancung / 3.0) * (super.hitungLuas(vJariMinor, vJariMayor) + (PI * this.vJariMayorAtas * this.vJariMinorAtas) + Math.sqrt(super.hitungLuas(vJariMinor, vJariMayor) * (PI * this.vJariMayorAtas * this.vJariMinorAtas)));
         return vVolumeKerucutTerpancung;
     }
 

@@ -9,14 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AplikasiGeometriElips {
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean running = true;
+    private static final Scanner scanner = new Scanner(System.in);
 
+    public static void main(String[] args) {
         System.out.println("=================================================");
         System.out.println("        KALKULATOR GEOMETRI ELIPS SYSTEM         ");
         System.out.println("=================================================");
 
+        boolean running = true;
         while (running) {
             System.out.println("\n=== KALKULATOR GEOMETRI ELIPS ===");
             System.out.println("1. Elips (2D)");
@@ -97,7 +97,6 @@ public class AplikasiGeometriElips {
                 System.out.println("\n🚨 Error: " + e.getMessage());
             }
         }
-        scanner.close();
     }
 
     private static void menuEllipsoid(Scanner scanner) throws Exception {
@@ -189,29 +188,77 @@ public class AplikasiGeometriElips {
         // Spawn threads
         for (int t = 0; t < threads; t++) {
             final int threadId = t + 1;
-            Elips bangun;
-            
+
             // Dummy valid dimensions
             double r1 = 3.0;
             double r2 = 5.0;
             double r3 = 4.0;
-            double h = 10.0;
+            double h  = 10.0;
 
             switch (jenis) {
-                case 1: bangun = new Elips(r1, r2); break;
-                case 2: bangun = new Tabung(r1, r2, h); break;
-                case 3: bangun = new Kerucut(r1, r2, h); break;
-                case 4: bangun = new KerucutTerpancung(r1, r2, 1.5, 2.5, h); break;
-                case 5: bangun = new CincinElips(r1, r2, 8.0); break;
-                case 6: bangun = new BolaElipsoid(r1, r2, r3); break;
-                case 7: bangun = new JuringElipsoid(r1, r2, r3, 120.0); break;
-                case 8: bangun = new TemberengElipsoid(r1, r2, r3, 2.0); break;
-                default: bangun = new Elips(r1, r2);
+                case 1: {
+                    Elips bangunElips = new Elips(r1, r2);
+                    bangunElips.multithread(iterasi, threadId, listener);
+                    Thread threadBangunElips = new Thread(bangunElips);
+                    threadBangunElips.start();
+                    break;
+                }
+                case 2: {
+                    Tabung bangunTabung = new Tabung(r1, r2, h);
+                    bangunTabung.multithread(iterasi, threadId, listener);
+                    Thread threadBangunTabung = new Thread(bangunTabung);
+                    threadBangunTabung.start();
+                    break;
+                }
+                case 3: {
+                    Kerucut bangunKerucut = new Kerucut(r1, r2, h);
+                    bangunKerucut.multithread(iterasi, threadId, listener);
+                    Thread threadBangunKerucut = new Thread(bangunKerucut);
+                    threadBangunKerucut.start();
+                    break;
+                }
+                case 4: {
+                    KerucutTerpancung bangunKerucutTerpancung = new KerucutTerpancung(r1, r2, 1.5, 2.5, h);
+                    bangunKerucutTerpancung.multithread(iterasi, threadId, listener);
+                    Thread threadBangunKerucutTerpancung = new Thread(bangunKerucutTerpancung);
+                    threadBangunKerucutTerpancung.start();
+                    break;
+                }
+                case 5: {
+                    CincinElips bangunCincinElips = new CincinElips(r1, r2, 8.0);
+                    bangunCincinElips.multithread(iterasi, threadId, listener);
+                    Thread threadBangunCincinElips = new Thread(bangunCincinElips);
+                    threadBangunCincinElips.start();
+                    break;
+                }
+                case 6: {
+                    BolaElipsoid bangunBolaElipsoid = new BolaElipsoid(r1, r2, r3);
+                    bangunBolaElipsoid.multithread(iterasi, threadId, listener);
+                    Thread threadBangunBolaElipsoid = new Thread(bangunBolaElipsoid);
+                    threadBangunBolaElipsoid.start();
+                    break;
+                }
+                case 7: {
+                    JuringElipsoid bangunJuringElipsoid = new JuringElipsoid(r1, r2, r3, 120.0);
+                    bangunJuringElipsoid.multithread(iterasi, threadId, listener);
+                    Thread threadBangunJuringElipsoid = new Thread(bangunJuringElipsoid);
+                    threadBangunJuringElipsoid.start();
+                    break;
+                }
+                case 8: {
+                    TemberengElipsoid bangunTemberengElipsoid = new TemberengElipsoid(r1, r2, r3, 2.0);
+                    bangunTemberengElipsoid.multithread(iterasi, threadId, listener);
+                    Thread threadBangunTemberengElipsoid = new Thread(bangunTemberengElipsoid);
+                    threadBangunTemberengElipsoid.start();
+                    break;
+                }
+                default: {
+                    Elips bangunDefault = new Elips(r1, r2);
+                    bangunDefault.multithread(iterasi, threadId, listener);
+                    Thread threadBangunDefault = new Thread(bangunDefault);
+                    threadBangunDefault.start();
+                }
             }
-
-            bangun.multithread(iterasi, threadId, listener);
-            Thread threadObj = new Thread(bangun);
-            threadObj.start();
         }
 
         // Synchronous waiting loop untuk mengunci menu CLI sampai stress test rampung
@@ -241,29 +288,29 @@ public class AplikasiGeometriElips {
                 // Urutan dari yang paling spesifik (Subclass terbawah)
                 if (el instanceof JuringElipsoid) {
                     JuringElipsoid jr = (JuringElipsoid) el;
-                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", jr.getVJariKedalaman());
-                    System.out.printf("Sudut Potongan Sektor : %.1f derajat\n", jr.getSudut());
+                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", jr.vJariKedalaman);
+                    System.out.printf("Sudut Potongan Sektor : %.1f derajat\n", jr.sudut);
                 } else if (el instanceof TemberengElipsoid) {
                     TemberengElipsoid tm = (TemberengElipsoid) el;
-                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", tm.getVJariKedalaman());
-                    System.out.printf("Tinggi Potongan Kubah : %.4f cm\n", tm.getTinggiPotongan());
+                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", tm.vJariKedalaman);
+                    System.out.printf("Tinggi Potongan Kubah : %.4f cm\n", tm.tinggiPotongan);
                 } else if (el instanceof BolaElipsoid) {
                     BolaElipsoid be = (BolaElipsoid) el;
-                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", be.getVJariKedalaman());
+                    System.out.printf("Jari-jari Kedalaman(r3): %.4f cm\n", be.vJariKedalaman);
                 } else if (el instanceof Tabung) {
                     Tabung tb = (Tabung) el;
-                    System.out.printf("Tinggi Tabung (t)     : %.4f cm\n", tb.getTinggi());
+                    System.out.printf("Tinggi Tabung (t)     : %.4f cm\n", tb.vTinggiTabung);
                 } else if (el instanceof Kerucut) {
                     Kerucut kc = (Kerucut) el;
-                    System.out.printf("Tinggi Kerucut (t)    : %.4f cm\n", kc.getTinggi());
+                    System.out.printf("Tinggi Kerucut (t)    : %.4f cm\n", kc.vTinggiKerucut);
                 } else if (el instanceof KerucutTerpancung) {
                     KerucutTerpancung kt = (KerucutTerpancung) el;
-                    System.out.printf("Jari Minor Atap (r1_a): %.4f cm\n", kt.getVJariMinorAtas());
-                    System.out.printf("Jari Mayor Atap (r2_a): %.4f cm\n", kt.getVJariMayorAtas());
-                    System.out.printf("Tinggi Terpancung (t) : %.4f cm\n", kt.getTinggi());
+                    System.out.printf("Jari Minor Atap (r1_a): %.4f cm\n", kt.vJariMinorAtas);
+                    System.out.printf("Jari Mayor Atap (r2_a): %.4f cm\n", kt.vJariMayorAtas);
+                    System.out.printf("Tinggi Terpancung (t) : %.4f cm\n", kt.vTinggiKerucutTerpancung);
                 } else if (el instanceof CincinElips) {
                     CincinElips cn = (CincinElips) el;
-                    System.out.printf("Jari Lintasan Torus(R): %.4f cm\n", cn.getR());
+                    System.out.printf("Jari Lintasan Torus(R): %.4f cm\n", cn.R);
                 }
 
                 // Cetak Luas Permukaan & Volume jika mendukung BangunRuang 3D
@@ -284,15 +331,9 @@ public class AplikasiGeometriElips {
         if (el instanceof Kerucut) return "Kerucut Elips";
         if (el instanceof KerucutTerpancung) return "Kerucut Terpancung Elips";
         if (el instanceof CincinElips) return "Cincin Elips (Torus)";
-        if (el instanceof JuringElipsoid) {
-            return ((JuringElipsoid) el).isBolaSempurna() ? "Juring Bola Sempurna" : "Juring Ellipsoid";
-        }
-        if (el instanceof TemberengElipsoid) {
-            return ((TemberengElipsoid) el).isBolaSempurna() ? "Tembereng Bola Sempurna" : "Tembereng Ellipsoid";
-        }
-        if (el instanceof BolaElipsoid) {
-            return ((BolaElipsoid) el).isBolaSempurna() ? "Bola Sempurna" : "Ellipsoid Utuh";
-        }
+        if (el instanceof JuringElipsoid) return "Juring Ellipsoid";
+        if (el instanceof TemberengElipsoid) return "Tembereng Ellipsoid";
+        if (el instanceof BolaElipsoid) return "Ellipsoid";
         return "Elips (Alas 2D)";
     }
 

@@ -6,74 +6,56 @@ package aplikasigeometrielips;
  */
 public class BolaElipsoid extends Elips implements BangunRuang, Runnable {
     public double vJariKedalaman;
+    public double vVolumeBolaElipsoid;
+    public double vLuasPermukaanBolaElipsoid;
+    public double p = 1.6075; // Rumus pendekatan Knud Thomsen
+    public double term; // Rumus pendekatan Knud Thomsen
 
     // Konstruktor Ellipsoid (3 jari-jari)
     public BolaElipsoid(double vJariMinor, double vJariMayor, double vJariKedalaman) {
         super(vJariMinor, vJariMayor);
-        if (vJariKedalaman <= 0) {
-            throw new IllegalArgumentException("Jari-jari kedalaman (r3) harus lebih besar dari 0.");
-        }
         this.vJariKedalaman = vJariKedalaman;
-    }
-
-    // Konstruktor Bola Sempurna (1 jari-jari)
-    public BolaElipsoid(double r) {
-        super(r, r);
-        this.vJariKedalaman = r;
     }
 
     @Override
     public double hitungVolume() throws Exception {
-        vVolume = (4.0 / 3.0) * PI * vJariMinor * vJariMayor * vJariKedalaman;
-        return vVolume;
+        if (vJariKedalaman <= 0) throw new Exception("Jari-jari kedalaman harus lebih besar dari 0.");
+        // super.hitungLuas() sudah memvalidasi vJariMinor dan vJariMayor
+        vVolumeBolaElipsoid = (4.0 / 3.0) * super.hitungLuas() * vJariKedalaman;
+        return vVolumeBolaElipsoid;
     }
 
     // Overloading yang bersih dan menjaga sinkronisasi data objek
     public double hitungVolume(double vJariMinor, double vJariMayor, double vJariKedalaman) throws Exception {
-        if (vJariMinor <= 0 || vJariMayor <= 0 || vJariKedalaman <= 0) {
-            throw new IllegalArgumentException("Jari-jari harus lebih besar dari 0.");
-        }
-        this.vJariMinor = vJariMinor;
-        this.vJariMayor = vJariMayor;
+        if (vJariKedalaman <= 0) throw new Exception("Jari-jari kedalaman harus lebih besar dari 0.");
         this.vJariKedalaman = vJariKedalaman;
-        return hitungVolume();
+        // super.hitungLuas(overload) memvalidasi dan mengupdate vJariMinor & vJariMayor
+        vVolumeBolaElipsoid = (4.0 / 3.0) * super.hitungLuas(vJariMinor, vJariMayor) * vJariKedalaman;
+        return vVolumeBolaElipsoid;
     }
 
     @Override
     public double hitungLuasPermukaan() throws Exception {
-        double a = vJariMayor;
-        double b = vJariMinor;
-        double c = vJariKedalaman;
-        
-        if (isBolaSempurna()) {
-            vLuasPermukaan = 4.0 * PI * a * a;
-            return vLuasPermukaan;
+        if (vJariMinor <= 0 || vJariMayor <= 0 || vJariKedalaman <= 0) {
+            throw new Exception("Semua jari-jari harus lebih besar dari 0.");
         }
-        
+
         // Rumus pendekatan Knud Thomsen (sangat akurat untuk elipsoid)
-        double p = 1.6075;
-        double term = (Math.pow(a * b, p) + Math.pow(a * c, p) + Math.pow(b * c, p)) / 3.0;
-        vLuasPermukaan = 4.0 * PI * Math.pow(term, 1.0 / p);
-        return vLuasPermukaan;
+        term = (Math.pow(vJariMayor * vJariMinor, p) + Math.pow(vJariMayor * vJariKedalaman, p) + Math.pow(vJariMinor * vJariKedalaman, p)) / 3.0;
+        vLuasPermukaanBolaElipsoid = 4.0 * PI * Math.pow(term, 1.0 / p);
+        return vLuasPermukaanBolaElipsoid;
     }
 
     // Overloading yang bersih dan menjaga sinkronisasi data objek
     public double hitungLuasPermukaan(double vJariMinor, double vJariMayor, double vJariKedalaman) throws Exception {
         if (vJariMinor <= 0 || vJariMayor <= 0 || vJariKedalaman <= 0) {
-            throw new IllegalArgumentException("Jari-jari harus lebih besar dari 0.");
+            throw new Exception("Semua jari-jari harus lebih besar dari 0.");
         }
-        this.vJariMinor = vJariMinor;
-        this.vJariMayor = vJariMayor;
-        this.vJariKedalaman = vJariKedalaman;
-        return hitungLuasPermukaan();
-    }
-
-    public double getVJariKedalaman() {
-        return vJariKedalaman;
-    }
-
-    public boolean isBolaSempurna() {
-        return vJariMinor == vJariMayor && vJariMayor == vJariKedalaman;
+        
+        // Rumus pendekatan Knud Thomsen (sangat akurat untuk elipsoid)
+        term = (Math.pow(vJariMayor * vJariMinor, p) + Math.pow(vJariMayor * vJariKedalaman, p) + Math.pow(vJariMinor * vJariKedalaman, p)) / 3.0;
+        vLuasPermukaanBolaElipsoid = 4.0 * PI * Math.pow(term, 1.0 / p);
+        return vLuasPermukaanBolaElipsoid;
     }
 
     @Override
@@ -81,25 +63,21 @@ public class BolaElipsoid extends Elips implements BangunRuang, Runnable {
         if (listener == null) return;
         long startMs = System.currentTimeMillis();
         double dummyResult = 0;
-        double finalLuasPermukaan = 0; // PERBAIKAN: Penamaan variabel yang jelas
+        double finalLuasPermukaan = 0;
         double finalVol = 0;
-        
-        // OPTIMASI: Nama dinamis berdasarkan bentuk aslinya
-        String nama = isBolaSempurna() ? "Bola Sempurna" : "Ellipsoid";
 
         try {
             for (int i = 1; i <= iterasi; i++) {
                 if (Thread.currentThread().isInterrupted()) {
                     break;
                 }
-                
-                // PERBAIKAN: Memanggil hitungLuasPermukaan() milik Elipsoid, bukan hitungLuas() milik Elips 2D
+
                 finalLuasPermukaan = hitungLuasPermukaan();
                 finalVol = hitungVolume();
-                
-                dummyResult += finalVol + finalLuasPermukaan; 
-                
-                listener.onProgress(threadId, (int)((i * 100.0) / iterasi), "[" + nama + "-Th" + threadId + "] Proses jalan... Iterasi ke-" + i);
+
+                dummyResult += finalVol + finalLuasPermukaan;
+
+                listener.onProgress(threadId, (int)((i * 100.0) / iterasi), "[Ellipsoid-Th" + threadId + "] Proses jalan... Iterasi ke-" + i);
 
                 try {
                     Thread.sleep(100);
@@ -109,11 +87,9 @@ public class BolaElipsoid extends Elips implements BangunRuang, Runnable {
                 }
             }
             long timeTaken = System.currentTimeMillis() - startMs;
-            
-            // PERBAIKAN: Mengirimkan data Luas Permukaan nyata ke listener
-            listener.onDone(threadId, nama, finalLuasPermukaan, finalVol, timeTaken, null);
+            listener.onDone(threadId, "Ellipsoid", finalLuasPermukaan, finalVol, timeTaken, null);
         } catch (Exception e) {
-            listener.onDone(threadId, nama, 0, 0, 0, e.getMessage());
+            listener.onDone(threadId, "Ellipsoid", 0, 0, 0, e.getMessage());
         }
     }
 }

@@ -6,65 +6,71 @@ package aplikasigeometrielips;
  */
 public class TemberengElipsoid extends BolaElipsoid implements BangunRuang, Runnable {
     public double tinggiPotongan; // Tinggi potongan dari ujung kutub (h)
+    public double vVolumeTemberengElipsoid;
+    public double vLuasPermukaanTemberengElipsoid;
+    public double capArea;
+    public double baseArea;
+    public double ratio;
 
     public TemberengElipsoid(double vJariMinor, double vJariMayor, double vJariKedalaman, double tinggiPotongan) {
         super(vJariMinor, vJariMayor, vJariKedalaman);
-        if (tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
-            throw new IllegalArgumentException("Tinggi potongan tidak valid. Harus lebih dari 0 dan maksimal diameter kedalaman (2 * r3).");
-        }
         this.tinggiPotongan = tinggiPotongan;
     }
 
     @Override
     public double hitungVolume() throws Exception {
-        double h = tinggiPotongan;
-        double r3 = vJariKedalaman;
-        // Rumus volume kubah elipsoid menggunakan integrasi kalkulus
-        double pengali = (PI * vJariMayor * vJariMinor * Math.pow(h, 2)) / (3.0 * Math.pow(r3, 2));
-        double sisa = (3.0 * r3) - h;
-        vVolume = pengali * sisa;
-        return vVolume;
+        if (tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
+            throw new Exception("Tinggi potongan tidak valid. Harus lebih dari 0 dan maksimal diameter kedalaman (2 * r3).");
+        }
+
+        // Rumus volume kubah elipsoid menggunakan integrasi kalkulus (AI)
+        vVolumeTemberengElipsoid = ((super.hitungLuas() * Math.pow(tinggiPotongan, 2)) / (3.0 * Math.pow(vJariKedalaman, 2))) * ((3.0 * vJariKedalaman) - tinggiPotongan);
+        return vVolumeTemberengElipsoid;
     }
 
     // Overloading yang bersih dan menjaga konsistensi state objek
     public double hitungVolume(double vJariMinor, double vJariMayor, double vJariKedalaman, double tinggiPotongan) throws Exception {
-        if (vJariMinor <= 0 || vJariMayor <= 0 || vJariKedalaman <= 0 || tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
-            throw new IllegalArgumentException("Parameter input tidak valid.");
+        if (tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
+            throw new Exception("Tinggi potongan tidak valid. Harus lebih dari 0 dan maksimal diameter kedalaman (2 * r3).");
         }
-        this.vJariMinor = vJariMinor;
-        this.vJariMayor = vJariMayor;
         this.vJariKedalaman = vJariKedalaman;
         this.tinggiPotongan = tinggiPotongan;
-        return hitungVolume();
+
+        // Rumus volume kubah elipsoid menggunakan integrasi kalkulus
+        // super.hitungLuas(overload) memvalidasi dan mengupdate vJariMinor & vJariMayor
+        vVolumeTemberengElipsoid = (super.hitungLuas(vJariMinor, vJariMayor) * Math.pow(tinggiPotongan, 2) / (3.0 * Math.pow(vJariKedalaman, 2))) * ((3.0 * vJariKedalaman) - tinggiPotongan);
+        return vVolumeTemberengElipsoid;
     }
 
     @Override
     public double hitungLuasPermukaan() throws Exception {
+        if (tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
+            throw new Exception("Tinggi potongan tidak valid. Harus lebih dari 0 dan maksimal diameter kedalaman (2 * r3).");
+        }
         // 1. Luas Selimut Lengkung Kubah (Aproksimasi rasio tinggi terhadap total permukaan elipsoid)
-        double ratio = tinggiPotongan / (2.0 * vJariKedalaman);
-        double capArea = super.hitungLuasPermukaan() * ratio;
-        
+        // super.hitungLuasPermukaan() akan memvalidasi semua jari-jari
+        ratio = tinggiPotongan / (2.0 * vJariKedalaman);
+        capArea = super.hitungLuasPermukaan() * ratio;
+
         // 2. Luas Alas Datar Hasil Potongan berbentuk elips sempurna
-        double baseArea = PI * vJariMayor * vJariMinor * (1.0 - Math.pow(1.0 - tinggiPotongan / vJariKedalaman, 2));
-        
-        vLuasPermukaan = capArea + baseArea;
-        return vLuasPermukaan;
+        baseArea = PI * vJariMayor * vJariMinor * (1.0 - Math.pow(1.0 - tinggiPotongan / vJariKedalaman, 2));
+
+        vLuasPermukaanTemberengElipsoid = capArea + baseArea;
+        return vLuasPermukaanTemberengElipsoid;
     }
 
     // Overloading yang bersih dan menjaga konsistensi state objek
     public double hitungLuasPermukaan(double vJariMinor, double vJariMayor, double vJariKedalaman, double tinggiPotongan) throws Exception {
-        if (vJariMinor <= 0 || vJariMayor <= 0 || vJariKedalaman <= 0 || tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
-            throw new IllegalArgumentException("Parameter input tidak valid.");
+        if (tinggiPotongan <= 0 || tinggiPotongan > (2 * vJariKedalaman)) {
+            throw new Exception("Tinggi potongan tidak valid. Harus lebih dari 0 dan maksimal diameter kedalaman (2 * r3).");
         }
-        this.vJariMinor = vJariMinor;
-        this.vJariMayor = vJariMayor;
-        this.vJariKedalaman = vJariKedalaman;
         this.tinggiPotongan = tinggiPotongan;
-        return hitungLuasPermukaan();
-    }
-
-    public double getTinggiPotongan() {
-        return tinggiPotongan;
+        ratio = tinggiPotongan / (2.0 * vJariKedalaman);
+        // super.hitungLuasPermukaan(overload) memvalidasi dan mengupdate semua jari-jari
+        capArea = super.hitungLuasPermukaan(vJariMinor, vJariMayor, vJariKedalaman) * ratio;
+        baseArea = PI * this.vJariMayor * this.vJariMinor * (1.0 - Math.pow(1.0 - tinggiPotongan / this.vJariKedalaman, 2));
+        vLuasPermukaanTemberengElipsoid = capArea + baseArea;
+        return vLuasPermukaanTemberengElipsoid;
     }
 
     @Override
@@ -72,25 +78,21 @@ public class TemberengElipsoid extends BolaElipsoid implements BangunRuang, Runn
         if (listener == null) return;
         long startMs = System.currentTimeMillis();
         double dummyResult = 0;
-        double finalLuasPermukaan = 0; // PERBAIKAN: Penamaan variabel yang jelas untuk objek 3D
+        double finalLuasPermukaan = 0;
         double finalVol = 0;
-
-        // Penamaan dinamis mendeteksi jika basis geometrinya bola sempurna
-        String nama = isBolaSempurna() ? "Tembereng Bola" : "Tembereng Ellipsoid";
 
         try {
             for (int i = 1; i <= iterasi; i++) {
                 if (Thread.currentThread().isInterrupted()) {
                     break;
                 }
-                
-                // PERBAIKAN: Memanggil hitungLuasPermukaan() dari tembereng, bukan hitungLuas() elips 2D
+
                 finalLuasPermukaan = hitungLuasPermukaan();
                 finalVol = hitungVolume();
-                
-                dummyResult += finalVol + finalLuasPermukaan; 
-                
-                listener.onProgress(threadId, (int)((i * 100.0) / iterasi), "[" + nama + "-Th" + threadId + "] Proses jalan... Iterasi ke-" + i);
+
+                dummyResult += finalVol + finalLuasPermukaan;
+
+                listener.onProgress(threadId, (int)((i * 100.0) / iterasi), "[Tembereng Ellipsoid-Th" + threadId + "] Proses jalan... Iterasi ke-" + i);
 
                 try {
                     Thread.sleep(100);
@@ -100,11 +102,9 @@ public class TemberengElipsoid extends BolaElipsoid implements BangunRuang, Runn
                 }
             }
             long timeTaken = System.currentTimeMillis() - startMs;
-            
-            // PERBAIKAN: Mengirim data Luas Permukaan total yang valid ke listener
-            listener.onDone(threadId, nama, finalLuasPermukaan, finalVol, timeTaken, null);
+            listener.onDone(threadId, "Tembereng Ellipsoid", finalLuasPermukaan, finalVol, timeTaken, null);
         } catch (Exception e) {
-            listener.onDone(threadId, nama, 0, 0, 0, e.getMessage());
+            listener.onDone(threadId, "Tembereng Ellipsoid", 0, 0, 0, e.getMessage());
         }
     }
 }
